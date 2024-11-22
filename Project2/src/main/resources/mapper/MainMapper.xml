@@ -41,6 +41,7 @@
 		    CR.CAREER_NAME,
 		    ED.EDU_NAME,
 		    P.POST_SALARY,
+		    P.IMAGE_IDX,
 		    S.SKILL_NAME,
 		    EM.EMP_NAME,
 		    CT.CITY_NAME,
@@ -76,7 +77,8 @@
                      POST_HIT,
                      POST_DDATE,
                      POST_CDATE,
-                     POST_FDATE
+                     POST_FDATE,
+                     P.IMAGE_IDX
 	</select>
 	<select id="getTotPoint">
 	  SELECT (AVG(WC_POINT)+AVG(WLB_POINT)+AVG(CC_POINT)+AVG(PO_POINT)+AVG(EM_POINT))/5 FROM REVIEW R JOIN POST P ON R.COMPANY_IDX = P.COMPANY_IDX
@@ -520,6 +522,8 @@
 	    C.COMPANY_TEL,
 	    C.COMPANY_EMAIL,
 	    C.COMPANY_AREA,
+	    C.COMPANY_ADDRESS,
+	    TO_CHAR(TO_DATE(C.COMPANY_BIRTHDATE, 'YYYY-MM-DD'), 'YYYY.MM.DD') AS COMPANY_BIRTHDATE,
 	    (AVG(WC_POINT)+AVG(WLB_POINT)+AVG(CC_POINT)+AVG(PO_POINT)+AVG(EM_POINT))/5 TOT_POINT,
 	    ROUND(AVG(WC_POINT),1) WC_POINT,
 	    ROUND(AVG(WLB_POINT),1) WLB_POINT,
@@ -528,7 +532,7 @@
 	    ROUND(AVG(EM_POINT),1) EM_POINT
 		FROM COMPANYS C LEFT JOIN REVIEW R ON C.COMPANY_IDX = R.COMPANY_IDX
 		WHERE C.COMPANY_IDX = #{company_idx}
-		GROUP BY   C.COMPANY_IDX,C.COMPANY_NAME,C.COMPANY_TEL,C.COMPANY_EMAIL,C.COMPANY_AREA
+		GROUP BY   C.COMPANY_IDX,C.COMPANY_NAME,C.COMPANY_TEL,C.COMPANY_EMAIL,C.COMPANY_AREA,C.COMPANY_ADDRESS,C.COMPANY_BIRTHDATE
 	</select>
 	
 	<select id="getReviewCount">
@@ -579,7 +583,13 @@
 	    REVIEW R LEFT JOIN COMPANYS C ON R.COMPANY_IDX = C.COMPANY_IDX
 			WHERE USER_IDX = #{user_idx}
 	</select>
-
+	
+  <select id="countP">
+ 	SELECT COUNT(POST_IDX)
+	FROM POST
+	WHERE COMPANY_IDX = #{company_idx}
+  
+  </select>
 	
 	<select id="getReviewData">
 		SELECT
@@ -716,6 +726,59 @@
    FROM CLARIFICATION
    WHERE POST_IDX = #{post_idx}
    </select>
+   
+   <select id="getResumeClickList">
+   SELECT *
+   FROM RESUME_CLICK
+   WHERE RESUME_IDX = #{resume_idx}
+   </select>
+  
+   <delete id="deleteResumeClickR">
+   DELETE 
+   FROM RESUME_CLICK
+   WHERE RESUME_IDX = #{resume_idx}
+   </delete>
+   
+   <insert id="inserCarification">
+   INSERT INTO CLARIFICATION (CLARIFICATION_IDX,CLOTH,AGE,SITUATION_ETC,PREK,PTO,PREK_ETC,MEETING_NUM,MEETING_COUNT,POST_IDX)
+    VALUES ( CLARIFICATION_SEQ.NEXTVAL,#{cloth},#{age},#{situation_etc},#{prek},#{pto},#{prek_etc},#{meeting_num},#{meeting_count},
+    (SELECT NVL(MAX(POST_IDX),0) FROM POST)
+)
+   </insert>
+   
+   <insert id="insertCarPost">
+      INSERT INTO CLARIFICATION (CLARIFICATION_IDX,CLOTH,AGE,SITUATION_ETC,PREK,PTO,PREK_ETC,MEETING_NUM,MEETING_COUNT,POST_IDX)
+    VALUES ( CLARIFICATION_SEQ.NEXTVAL,#{arg0},#{arg1},#{arg2},#{arg3},#{arg4},#{arg5},#{arg6},#{arg7},
+    #{arg8}
+)
+   </insert>
+   
+   <update id="updateClarification">
+   UPDATE CLARIFICATION
+   SET  CLOTH = #{cloth},
+        AGE = #{age},
+        SITUATION_ETC = #{situation_etc},
+        PREK = #{prek},
+        PTO = #{pto},
+        PREK_ETC = #{prek_etc},
+        MEETING_NUM  = #{meeting_num},
+        MEETING_COUNT = #{meeting_count}
+   WHERE CLARIFICATION_IDX = #{clarification_idx}
+   </update>
+   
+   <delete id="deleteClarification">
+   DELETE 
+   FROM CLARIFICATION
+   WHERE POST_IDX = #{post_idx}
+   </delete>
+   
+   <delete id="deletePostClick">
+   DELETE
+   FROM POST_CLICK
+   WHERE POST_IDX = #{post_idx}
+   
+   </delete>
+   
 </mapper>
 
 
